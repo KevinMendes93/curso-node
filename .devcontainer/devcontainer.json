@@ -1,0 +1,11 @@
+{
+  "name": "Node + NVM DevContainer",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash"
+  },
+  "postCreateCommand": "bash -i -l -c 'nvm install 18.20.8 && nvm use 18.20.8'",
+  "remoteUser": "vscode"
+}
