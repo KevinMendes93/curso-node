@@ -33,7 +33,13 @@ export class AuthService {
     }
 
     async verifyToken(token: string) {
+        const user = this.jwtService.verify(token, {
+            audience: 'users',
+            issuer: 'login'
+        })
+        if (!user) throw new UnauthorizedException('Token inválido ou expirado.');
         
+        return user;
     }
 
     async login(body: AuthLoginDTO) {

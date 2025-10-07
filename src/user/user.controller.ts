@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Patch, Post, Put, UseInterceptors } from "@nestjs/common";
 import { CreateUserDTO } from "./dto/create-user.dto";
 import { UpdateUserPutDTO } from "./dto/update-put-user.dto";
 import { UpdateUserPatchDTO } from "./dto/update-patch-user.dto";
