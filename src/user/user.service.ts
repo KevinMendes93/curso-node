@@ -15,7 +15,8 @@ export class UserService {
         return this.prismaService.user.create ({
             data: {
                 ...user,
-                id: this.generatorId.generateUniqueId()
+                id: this.generatorId.generateUniqueId(),
+                birthAt: user.birthAt ? new Date(user.birthAt) : null,
             }
         })
     }
@@ -37,7 +38,7 @@ export class UserService {
 
         return this.prismaService.user.update({
             where: {id},
-            data: {...user, birthAt: user.birthAt ? new Date(user.birthAt) : null, updatedAt: new Date(Date.now())}
+            data: {...user, birthAt: user.birthAt ? new Date(user.birthAt) : null}
         });
     }
 
