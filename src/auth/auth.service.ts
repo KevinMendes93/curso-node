@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "src/prisma/prisma.service";
 import { AuthLoginDTO } from "./dto/auth-login.dto";
@@ -10,13 +10,17 @@ import { UserService } from "src/user/user.service";
 
 @Injectable()
 export class AuthService {
+
+    private readonly ISSUER = 'login';
+    private readonly AUDIENCE = 'users';
+
     constructor(
         private readonly jwtService: JwtService,
         private readonly prismaService: PrismaService,
         private readonly userService: UserService
     ) {}
     
-    private async generateToken(user: User) {
+    private generateToken(user: User) {
         return {
             accessToken: this.jwtService.sign({
             id: user.id,
@@ -26,20 +30,33 @@ export class AuthService {
         { 
             expiresIn: '1d',
             subject: String(user.id),
-            issuer: 'login',
-            audience: 'users',
+            issuer: this.ISSUER,
+            audience: this.AUDIENCE,
         }
     )}
     }
 
-    async verifyToken(token: string) {
-        const user = this.jwtService.verify(token, {
-            audience: 'users',
-            issuer: 'login'
-        })
-        if (!user) throw new UnauthorizedException('Token inválido ou expirado.');
-        
-        return user;
+    verifyToken(token: string) {
+
+        try {
+            const data = this.jwtService.verify(token, {
+                issuer: this.ISSUER,
+                audience: this.AUDIENCE,
+            });
+            return data;
+        } catch(err) {
+            throw new BadRequestException(err);
+        }
+    }
+
+    isValidToken(token: string): boolean {
+
+        try {
+            this.verifyToken(token);
+            return true;
+        } catch(err) {
+            false;
+        }
     }
 
     async login(body: AuthLoginDTO) {
