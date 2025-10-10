@@ -10,10 +10,11 @@ datasource db {
 
 model User {
   id        Int   @id
-  name      String[]  @db.VarChar(63)
-  email     String[]  @db.VarChar(127)
-  password  String[]  @db.VarChar(127)
+  name      String  @db.VarChar(63)
+  email     String  @db.VarChar(127)
+  password  String  @db.VarChar(127)
   birthAt   DateTime? @db.Date
+  role      Int       @default(1)
   createdAt DateTime? @default(now()) @db.Timestamp(6)
   updatedAt DateTime? @default(now()) @db.Timestamp(6)
 
