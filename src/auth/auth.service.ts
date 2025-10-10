@@ -7,6 +7,7 @@ import { AuthResetDTO } from "./dto/auth-reset.dto";
 import { User } from "generated/prisma";
 import { AuthRegisterDTO } from "./dto/auth-register.dto";
 import { UserService } from "src/user/user.service";
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -65,14 +66,14 @@ export class AuthService {
             where: {
                 email: {
                     equals: body.email,
-                }, 
-                password: {
-                    equals: body.password,
-                } 
+                }
             }
         });
-        
         if (!user) throw new UnauthorizedException('E-mail e/ou senha incorretos.');
+
+        bcrypt.compare(body.password, user.password).then(bateu => {
+            if (!bateu) throw new UnauthorizedException('E-mail e/ou senha incorretos.');
+        })
 
         return this.generateToken(user);
     }
