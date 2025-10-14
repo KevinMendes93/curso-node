@@ -7,13 +7,9 @@ import { PrismaModule } from "src/prisma/prisma.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 
 @Module({
-    imports: [JwtModule.registerAsync({
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        useFactory: async (configService: ConfigService) => ({
-            signOptions: {expiresIn: '1d'},
-            secret: configService.get<string>('JWT_SECRET'),
-            }),
+    imports: [
+        JwtModule.register({
+            secret: process.env.JWT_SECRET
         }),
         forwardRef(() => UserModule),
         PrismaModule,
