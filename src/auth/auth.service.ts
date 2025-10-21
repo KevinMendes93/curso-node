@@ -6,6 +6,9 @@ import { AuthResetDTO } from "./dto/auth-reset.dto";
 import { AuthRegisterDTO } from "./dto/auth-register.dto";
 import { UserService } from "src/user/user.service";
 import * as bcrypt from 'bcrypt';
+import { UserEntity } from "src/user/entity/user.entity";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 
 @Injectable()
 export class AuthService {
@@ -15,10 +18,13 @@ export class AuthService {
 
     constructor(
         private readonly jwtService: JwtService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+
+        @InjectRepository(UserEntity)
+        private userRepository: Repository<UserEntity>
     ) {}
-    
-    private generateToken(user: User) {
+
+    private generateToken(user: UserEntity) {
         return {
             accessToken: this.jwtService.sign({
             id: user.id,
@@ -59,13 +65,10 @@ export class AuthService {
 
     async login(body: AuthLoginDTO) {
         
-        const user = await this.prismaService.user.findFirst({
-            where: {
-                email: {
-                    equals: body.email,
-                }
-            }
+        const user = await this.userRepository.findOneBy({
+            email: body.email
         });
+
         if (!user) throw new UnauthorizedException('E-mail e/ou senha incorretos.');
 
         bcrypt.compare(body.password, user.password).then(bateu => {
@@ -84,13 +87,10 @@ export class AuthService {
 
     async forget(body: AuthForgetDTO) {
                 
-        const user = await this.prismaService.user.findFirst({
-            where: {
-                email: {
-                    equals: body.email,
-                }
-            }
+        const user = await this.userRepository.findOneBy({
+            email: body.email
         });
+
         if (!user) throw new UnauthorizedException('E-mail está incorreto.');
 
         //TO DO: enviar email com token de reset.
@@ -98,20 +98,32 @@ export class AuthService {
         return user;
     }
     
-    async reset(body: AuthResetDTO) {
-        //TO DO: validar token de reset.
+    async reset(password: string, token: string) {
+        
+        try {
+            const data:any = this.jwtService.verify(token, {
+                issuer: this.ISSUER,
+                audience: this.AUDIENCE,
+            });
 
-        const id = 0;
-
-        const user = await this.prismaService.user.update({
-            where: {
-                id,
-            },
-            data: {
-                password: body.password,
+            if (isNaN(Number(data.id))) {
+                throw new BadRequestException('Token inválido para o usuário informado.');
             }
-        });
 
-        return this.generateToken(user);
+            const salt = await bcrypt.genSalt();
+            password = await bcrypt.hash(password, salt);
+            
+            await this.userRepository.update(Number(data.id), {
+                password: password
+            })
+
+            const user = await this.userService.findById(Number(data.id));
+
+            return this.generateToken(user);
+
+        } catch(err) {
+            throw new BadRequestException('Token inválido ou expirado.');
+        }
+
     }
 }

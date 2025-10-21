@@ -4,9 +4,14 @@ import { UserService } from "./user.service";
 import { GeneratorIdModule } from "src/generator-id/generator-id.module";
 import { UserIdCheckMiddleware } from "src/middlewares/user-id-check.middleware";
 import { AuthModule } from "src/auth/auth.module";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { UserEntity } from "./entity/user.entity";
 
 @Module({
-    imports: [GeneratorIdModule, forwardRef(() => AuthModule)],
+    imports: [
+        forwardRef(() => AuthModule),
+        TypeOrmModule.forFeature([UserEntity]),
+    ],
     providers: [UserService],
     controllers: [UserController],
     exports: [UserService],
